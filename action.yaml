@@ -1,0 +1,28 @@
+name: import-tools
+description: Imports tools into Artifactory
+
+inputs:
+  artifactory-username:
+    description: Username for accessing Artifactory
+    required: true
+
+  artifactory-password:
+    description: Password for accessing Artifactory
+    required: true
+
+  artifactory-base-url-for-tools:
+    description: The location in Artifactory to which the tools get uploaded, e.g. https://example.com/artifactory/dist-all/my-location
+    required: true
+
+  github-token:
+    description: Token for accessing GitHub API
+    required: true
+
+  dry-run:
+    description: Token for accessing GitHub API
+    required: true
+    default: 'false'
+
+runs:
+  using: node20
+  main: dist/index.js
