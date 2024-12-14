@@ -11,7 +11,7 @@ inputs:
     required: true
 
   artifactory-base-url-for-tools:
-    description: The location in Artifactory to which the tools get uploaded, e.g. https://example.com/artifactory/dist-all/my-location
+    description: Artifactory location to store the tools, e.g. https://example.com/artifactory/dist/tools
     required: true
 
   github-token:
