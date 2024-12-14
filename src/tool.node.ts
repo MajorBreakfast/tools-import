@@ -3,19 +3,16 @@ import semver from 'semver'
 
 export const toolName = 'Node'
 
-const getNodeVersionsToImport = async () => {
+export const getFilesToImport = async (): Promise<Record<string, string>> => {
   const versionsJSON = z
     .array(z.object({ version: z.string() }))
     .parse(await fetch('https://nodejs.org/dist/index.json').then((res) => res.json()))
 
-  return versionsJSON
-    .map((x) => x.version.replace(/^v/, ''))
-    .filter((v) => semver.satisfies(v, '>=23.4.0 || ^22.12.0 || ^20.18.1'))
-}
-
-export const getFilesToImport = async (): Promise<Record<string, string>> => {
   const filesToImport: Record<string, string> = {}
-  for (const version of await getNodeVersionsToImport()) {
+  for (const entry of versionsJSON) {
+    const version = entry.version.replace(/^v/, '')
+    if (!semver.satisfies(version, '>=23.4.0 || ^22.12.0 || ^20.18.1')) continue
+
     const url = `https://nodejs.org/dist/v${version}/node-v${version}-linux-x64.tar.xz`
     filesToImport[`node/${version}/linux-x64.tar.xz`] = url
   }

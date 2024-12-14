@@ -3,17 +3,15 @@ import semver from 'semver'
 
 export const toolName = 'Terraform'
 
-const getTerraformVersionsToImport = async () => {
+export const getFilesToImport = async (): Promise<Record<string, string>> => {
   const versionsJSON = z
     .object({ versions: z.record(z.object({})) })
     .parse(await fetch('https://releases.hashicorp.com/terraform/index.json').then((res) => res.json()))
 
-  return Object.keys(versionsJSON.versions).filter((v) => semver.satisfies(v, '>=1.10.2 || ~1.9.8'))
-}
-
-export const getFilesToImport = async (): Promise<Record<string, string>> => {
   const filesToImport: Record<string, string> = {}
-  for (const version of await getTerraformVersionsToImport()) {
+  for (const version of await Object.keys(versionsJSON.versions)) {
+    if (!semver.satisfies(version, '>=1.10.2 || ~1.9.8')) continue
+
     const url = `https://releases.hashicorp.com/terraform/${version}/terraform_${version}_linux_amd64.zip`
     filesToImport[`terraform/${version}/linux_amd64.zip`] = url
   }

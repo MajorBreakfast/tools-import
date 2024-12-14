@@ -5,19 +5,21 @@ import { getOctkit } from './testutils.js'
 
 export const toolName = 'Go'
 
-const getGoVersionsToImport = async (octokit: Octokit) => {
-  const tags = await listTagsOnGitHub(octokit, 'golang/go')
-
-  return tags
-    .filter((tag) => tag.startsWith('go'))
-    .map((tag) => tag.replace(/^go/, ''))
-    .filter((v) => semver.satisfies(v, '>=1.23.4 || ~1.22.10'))
+const cleanGitTag = (tag: string): string => {
+  const [, major = '0', minor = '0', patch = '0', preRelease = ''] =
+    tag.replace(/^go/, '').match(/^(\d+)(?:\.(\d+)(?:\.(\d+))?)?(.*)?$/) || []
+  return `${major}.${minor}.${patch}${preRelease ? `-${preRelease.trim()}` : ''}`
 }
 
 export const getFilesToImport = async ({ octokit }: { octokit: Octokit }): Promise<Record<string, string>> => {
   const filesToImport: Record<string, string> = {}
-  for (const version of await getGoVersionsToImport(octokit)) {
-    const url = `https://golang.org/dl/go${version}.linux-amd64.tar.gz`
+  for (const tag of await listTagsOnGitHub(octokit, 'golang/go')) {
+    if (!tag.startsWith('go')) continue
+
+    const version = cleanGitTag(tag)
+    if (!semver.satisfies(version, '>=1.23.4 || ~1.22.10 || 1.17.0')) continue
+
+    const url = `https://golang.org/dl/${tag}.linux-amd64.tar.gz`
     filesToImport[`go/${version}/linux-x64.tar.xz`] = url
   }
   return filesToImport
@@ -33,5 +35,12 @@ if (import.meta.vitest) {
         'go/1.22.10/linux-x64.tar.xz': 'https://golang.org/dl/go1.22.10.linux-amd64.tar.gz',
       })
     )
+  })
+
+  it('should clean the git tags', () => {
+    expect(cleanGitTag('go1')).toEqual('1.0.0')
+    expect(cleanGitTag('go1.0.1')).toEqual('1.0.1')
+    expect(cleanGitTag('go1.17')).toEqual('1.17.0')
+    expect(cleanGitTag('go1.1rc2')).toEqual('1.1.0-rc2')
   })
 }
