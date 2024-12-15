@@ -16,10 +16,10 @@ export const getFilesToImport = async ({ octokit }: { octokit: Octokit }): Promi
   for (const tag of await listTagsOnGitHub(octokit, 'golang/go')) {
     if (!tag.startsWith('go')) continue
 
-    const version = cleanGitTag(tag)
-    if (!semver.satisfies(version, '>=1.23.4 || ~1.22.10 || 1.17.0')) continue
+    const version = cleanGitTag(tag) // go1.21.0 -> 1.21.0, go1.20 -> 1.20.0
+    if (!semver.satisfies(version, '>=1.23.4 || ~1.22.10')) continue
 
-    const url = `https://golang.org/dl/${tag}.linux-amd64.tar.gz`
+    const url = `https://golang.org/dl/${tag}.linux-amd64.tar.gz` // Using tag var here is on purpose
     filesToImport[`go/${version}/linux-x64.tar.xz`] = url
   }
   return filesToImport
